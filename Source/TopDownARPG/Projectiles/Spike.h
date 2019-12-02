@@ -24,9 +24,16 @@ protected:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UPROPERTY(VisibleAnywhere, Category = Gameplay)
+	UPROPERTY(EditAnywhere, Category = Gameplay)
 	int32 RemainingSpikes = 6;
 
-	virtual void BeginPlay();
-	virtual void EndPlay();
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	float LifeSpan = 0.2;
+
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+	FVector GetSpawnLocation();
+	void SpawnNextSpike();
 };
