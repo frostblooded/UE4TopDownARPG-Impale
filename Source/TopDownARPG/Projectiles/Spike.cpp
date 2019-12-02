@@ -3,6 +3,7 @@
 
 #include "Spike.h"
 #include "DrawDebugHelpers.h"
+#include "Math/Vector.h"
 
 // Sets default values
 ASpike::ASpike()
@@ -18,9 +19,9 @@ ASpike::ASpike()
 
 	BoxComponent->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
 	BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	BoxComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ASpike::OnOverlap);
 	RootComponent = BoxComponent;
 
-	BoxComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ASpike::OnOverlap);
 }
 
 void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -35,8 +36,65 @@ void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrim
 void ASpike::BeginPlay()
 {
 	Super::BeginPlay();
+
+	MovementAmplitude = BoxComponent->GetScaledBoxExtent().Z * 2;
+	UE_LOG(LogTopDownARPG, Display, TEXT("Movement amplitude is %f"), MovementAmplitude);
+
 	SetActorLocation(GetSpawnLocation());
-	SetLifeSpan(LifeSpan);
+	StartLocation = GetActorLocation();
+
+	GoalLocation = StartLocation;
+	GoalLocation.Z += MovementAmplitude;
+
+	UE_LOG(LogTopDownARPG, Display, TEXT("Start location is %s"), *StartLocation.ToString());
+	UE_LOG(LogTopDownARPG, Display, TEXT("Goal location is %s"), *GoalLocation.ToString());
+
+	Movement = GoalLocation - StartLocation;
+	Movement.Normalize();
+
+	bIsMovingForward = true;
+}
+
+void ASpike::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	FVector Location = GetActorLocation();
+	FVector CurrentMovement = Movement * Speed * DeltaTime;
+
+	if (bIsMovingForward)
+	{
+		if (CurrentMovement.Size() > FVector::Distance(Location, GoalLocation))
+		{
+			SetActorLocation(GoalLocation);
+		}
+		else
+		{
+			SetActorLocation(Location + Movement * Speed * DeltaTime);
+		}
+
+		if (FVector::Distance(Location, GoalLocation) < 1)
+		{
+			bIsMovingForward = false;
+			Movement *= -1;
+		}
+	}
+	else
+	{
+		if (CurrentMovement.Size() > FVector::Distance(Location, StartLocation))
+		{
+			SetActorLocation(StartLocation);
+		}
+		else
+		{
+			SetActorLocation(Location + Movement * Speed * DeltaTime);
+		}
+
+		if (FVector::Distance(Location, StartLocation) < 1)
+		{
+			Destroy();
+		}
+	}
 }
 
 void ASpike::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -56,11 +114,19 @@ void ASpike::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 FVector ASpike::GetSpawnLocation() {
-	FVector Start = GetTransform().GetLocation();
+	FVector Start = GetActorLocation();
+
+	// This is needed because if there was a previous spike, it
+	// was destroyed underground.
+	Start.Z += MovementAmplitude;
+
+	UE_LOG(LogTopDownARPG, Display, TEXT("Sweep start is %s"), *Start.ToString());
+
 	FVector ForwardVector = FVector::DownVector;
 	FVector End = Start + ForwardVector * 1000;
 	FCollisionQueryParams CollisionParams;
 	FCollisionShape BoxShape = FCollisionShape::MakeBox(BoxComponent->GetScaledBoxExtent());
+	UE_LOG(LogTopDownARPG, Display, TEXT("Sweep box extents are %s"), *BoxShape.GetExtent().ToString());
 
 	UWorld* World = GetWorld();
 
@@ -76,12 +142,20 @@ FVector ASpike::GetSpawnLocation() {
 
 	if (bIsHit)
 	{
-		SpawnLocation = OutHit.Location;
+		SpawnLocation = OutHit.ImpactPoint;
+		SpawnLocation.Z += BoxShape.GetExtent().Z;
 	}
 	else
 	{
 		SpawnLocation = GetTransform().GetLocation();
 	}
+
+	UE_LOG(LogTopDownARPG, Display, TEXT("Spawn location before change is %s"), *SpawnLocation.ToString());
+
+	// Start below the ground
+	SpawnLocation.Z -= MovementAmplitude;
+
+	UE_LOG(LogTopDownARPG, Display, TEXT("Spawn location after change is %s"), *SpawnLocation.ToString());
 	
 	return SpawnLocation;
 }
@@ -97,7 +171,7 @@ void ASpike::SpawnNextSpike()
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Instigator = GetInstigator();
 
 	FTransform Transform = GetTransform();

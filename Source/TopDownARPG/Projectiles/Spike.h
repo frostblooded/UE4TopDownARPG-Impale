@@ -28,12 +28,19 @@ protected:
 	int32 RemainingSpikes = 6;
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
-	float LifeSpan = 0.2;
+	float Speed = 1;
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	FVector GetSpawnLocation();
 	void SpawnNextSpike();
+
+	FVector StartLocation;
+	FVector Movement;
+	FVector GoalLocation;
+	bool bIsMovingForward = true;
+	float MovementAmplitude = 100;
 };
