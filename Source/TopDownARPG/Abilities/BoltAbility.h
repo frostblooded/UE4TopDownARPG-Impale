@@ -19,6 +19,5 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AProjectile> ProjectileClass;
-	
+	TSubclassOf<class AActor> ProjectileClass;
 };
