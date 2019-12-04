@@ -109,13 +109,8 @@ FVector ASpike::GetSpawnLocation() {
 	// was destroyed underground.
 	Start.Z += MovementAmplitude;
 
-	UE_LOG(LogTopDownARPG, Display, TEXT("Sweep start is %s"), *Start.ToString());
-
-	FVector ForwardVector = FVector::DownVector;
-	FVector End = Start + ForwardVector * 1000;
+	FVector End = Start + FVector::DownVector * 1000;
 	FCollisionQueryParams CollisionParams;
-	FCollisionShape BoxShape = FCollisionShape::MakeBox(BoxComponent->GetScaledBoxExtent());
-	UE_LOG(LogTopDownARPG, Display, TEXT("Sweep box extents are %s"), *BoxShape.GetExtent().ToString());
 
 	UWorld* World = GetWorld();
 
@@ -125,26 +120,22 @@ FVector ASpike::GetSpawnLocation() {
 	}
 
 	FHitResult OutHit;
-	bool bIsHit = World->SweepSingleByChannel(OutHit, Start, End, ForwardVector.ToOrientationQuat(), ECollisionChannel::ECC_Visibility, BoxShape, CollisionParams);
+	bool bIsHit = World->LineTraceSingleByChannel(OutHit, Start, End, ECollisionChannel::ECC_Visibility, CollisionParams);
 
 	FVector SpawnLocation;
 
 	if (bIsHit)
 	{
 		SpawnLocation = OutHit.ImpactPoint;
-		SpawnLocation.Z += BoxShape.GetExtent().Z;
+		SpawnLocation.Z += BoxComponent->GetScaledBoxExtent().Z;
 	}
 	else
 	{
 		SpawnLocation = GetTransform().GetLocation();
 	}
 
-	UE_LOG(LogTopDownARPG, Display, TEXT("Spawn location before change is %s"), *SpawnLocation.ToString());
-
 	// Start below the ground
 	SpawnLocation.Z -= MovementAmplitude;
-
-	UE_LOG(LogTopDownARPG, Display, TEXT("Spawn location after change is %s"), *SpawnLocation.ToString());
 	
 	return SpawnLocation;
 }
