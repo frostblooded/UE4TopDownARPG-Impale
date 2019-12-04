@@ -77,6 +77,11 @@ void ASpike::Tick(float DeltaTime)
 		{
 			bIsMovingForward = false;
 			Movement *= -1;
+
+			if (RemainingSpikes > 0)
+			{
+				SpawnNextSpike();
+			}
 		}
 	}
 	else
@@ -95,22 +100,6 @@ void ASpike::Tick(float DeltaTime)
 			Destroy();
 		}
 	}
-}
-
-void ASpike::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	// We only want to spawn a new spike if the previous was destroyed
-	// normally. We don't want to spawn a new spike if the level is being
-	// unloaded or the game is quitting or something like that.
-	if (EndPlayReason == EEndPlayReason::Type::Destroyed)
-	{
-		if (RemainingSpikes > 0)
-		{
-			SpawnNextSpike();
-		}
-	}
-
-	Super::EndPlay(EndPlayReason);
 }
 
 FVector ASpike::GetSpawnLocation() {
