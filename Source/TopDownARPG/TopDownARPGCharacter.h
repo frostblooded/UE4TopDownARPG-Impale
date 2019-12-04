@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Abilities/Ability.h"
+#include "ImpaleMovementComponent.h"
 #include "TopDownARPGCharacter.generated.h"
 
 UCLASS(Blueprintable)
@@ -25,8 +26,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
-
-
 
 	UPROPERTY()
 	TArray<UAbility*> AbilityInstances;
@@ -56,5 +55,7 @@ private:
 	void TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigateBy, AActor* DamageCauser);
 
 	void Death();
+
+	UImpaleMovementComponent* ImpaleMovementComponent;
 };
 

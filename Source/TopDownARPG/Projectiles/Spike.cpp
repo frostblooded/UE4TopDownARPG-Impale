@@ -3,6 +3,9 @@
 
 #include "Spike.h"
 #include "DrawDebugHelpers.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Character.h"
+#include "TopDownARPGPlayerController.h"
 #include "Math/Vector.h"
 
 // Sets default values
@@ -29,6 +32,15 @@ void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrim
 
 	if (IsValid(Other) == false) {
 		UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::OnOverlap() - IsValid(Other) == false"));
+	}
+
+	ACharacter* OtherCharacter = (ACharacter*)Other;
+
+	UImpaleMovementComponent* OtherImpaleMovementComponent = Other->FindComponentByClass<UImpaleMovementComponent>();
+
+	if (OtherImpaleMovementComponent != nullptr)
+	{
+		OtherImpaleMovementComponent->Start(GetBoxHeight() * 2);
 	}
 }
 

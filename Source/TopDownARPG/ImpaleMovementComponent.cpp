@@ -83,7 +83,7 @@ void UImpaleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 		if (FVector::Distance(Location, StartLocation) < 1)
 		{
-			GetOwner()->Destroy();
+			// GetOwner()->Destroy();
 		}
 	}
 }

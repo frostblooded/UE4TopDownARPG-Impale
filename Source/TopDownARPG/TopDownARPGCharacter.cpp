@@ -65,6 +65,8 @@ void ATopDownARPGCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
+
 	Health = MaximumHealth;
 
 	for (const TSubclassOf<UAbility>& Template : AbilityTemplates)
