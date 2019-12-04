@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ImpaleMovementComponent.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
 #include "TopDownARPG.h"
@@ -16,7 +17,6 @@ class TOPDOWNARPG_API ASpike : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ASpike();
-
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Gameplay)
 	UBoxComponent* BoxComponent;
@@ -27,19 +27,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	int32 RemainingSpikes = 6;
 
-	UPROPERTY(EditAnywhere, Category = Gameplay)
-	float Speed = 1;
-
+	UImpaleMovementComponent* ImpaleMovementComponent;
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	void TrySpawnNextSpike();
+
+	UFUNCTION()
+	void SpawnNextSpike();
 
 private:
 	FVector GetSpawnLocation();
-	void SpawnNextSpike();
-
-	FVector StartLocation;
-	FVector Movement;
-	FVector GoalLocation;
-	bool bIsMovingForward = true;
-	float MovementAmplitude = 100;
+	float GetBoxHeight();
 };

@@ -21,7 +21,6 @@ ASpike::ASpike()
 	BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	BoxComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ASpike::OnOverlap);
 	RootComponent = BoxComponent;
-
 }
 
 void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -37,69 +36,11 @@ void ASpike::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MovementAmplitude = BoxComponent->GetScaledBoxExtent().Z * 2;
-	UE_LOG(LogTopDownARPG, Display, TEXT("Movement amplitude is %f"), MovementAmplitude);
-
 	SetActorLocation(GetSpawnLocation());
-	StartLocation = GetActorLocation();
 
-	GoalLocation = StartLocation;
-	GoalLocation.Z += MovementAmplitude;
-
-	UE_LOG(LogTopDownARPG, Display, TEXT("Start location is %s"), *StartLocation.ToString());
-	UE_LOG(LogTopDownARPG, Display, TEXT("Goal location is %s"), *GoalLocation.ToString());
-
-	Movement = GoalLocation - StartLocation;
-	Movement.Normalize();
-
-	bIsMovingForward = true;
-}
-
-void ASpike::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	FVector Location = GetActorLocation();
-	FVector CurrentMovement = Movement * Speed * DeltaTime;
-
-	if (bIsMovingForward)
-	{
-		if (CurrentMovement.Size() > FVector::Distance(Location, GoalLocation))
-		{
-			SetActorLocation(GoalLocation);
-		}
-		else
-		{
-			SetActorLocation(Location + Movement * Speed * DeltaTime);
-		}
-
-		if (FVector::Distance(Location, GoalLocation) < 1)
-		{
-			bIsMovingForward = false;
-			Movement *= -1;
-
-			if (RemainingSpikes > 0)
-			{
-				SpawnNextSpike();
-			}
-		}
-	}
-	else
-	{
-		if (CurrentMovement.Size() > FVector::Distance(Location, StartLocation))
-		{
-			SetActorLocation(StartLocation);
-		}
-		else
-		{
-			SetActorLocation(Location + Movement * Speed * DeltaTime);
-		}
-
-		if (FVector::Distance(Location, StartLocation) < 1)
-		{
-			Destroy();
-		}
-	}
+	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
+	ImpaleMovementComponent->Start(GetBoxHeight());
+	ImpaleMovementComponent->OnUpwardMovementEnd.AddUObject(this, &ASpike::TrySpawnNextSpike);
 }
 
 FVector ASpike::GetSpawnLocation() {
@@ -107,7 +48,7 @@ FVector ASpike::GetSpawnLocation() {
 
 	// This is needed because if there was a previous spike, it
 	// was destroyed underground.
-	Start.Z += MovementAmplitude;
+	Start.Z += GetBoxHeight();
 
 	FVector End = Start + FVector::DownVector * 1000;
 	FCollisionQueryParams CollisionParams;
@@ -135,9 +76,17 @@ FVector ASpike::GetSpawnLocation() {
 	}
 
 	// Start below the ground
-	SpawnLocation.Z -= MovementAmplitude;
+	SpawnLocation.Z -= GetBoxHeight();
 	
 	return SpawnLocation;
+}
+
+void ASpike::TrySpawnNextSpike()
+{
+	if (RemainingSpikes > 0)
+	{
+		SpawnNextSpike();
+	}
 }
 
 void ASpike::SpawnNextSpike()
@@ -166,3 +115,9 @@ void ASpike::SpawnNextSpike()
 
 	NewSpike->RemainingSpikes = RemainingSpikes - 1;
 }
+
+float ASpike::GetBoxHeight()
+{
+	return BoxComponent->GetScaledBoxExtent().Z * 2;
+}
+
