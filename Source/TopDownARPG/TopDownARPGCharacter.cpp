@@ -59,8 +59,12 @@ ATopDownARPGCharacter::ATopDownARPGCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	OnTakeAnyDamage.AddDynamic(this, &ATopDownARPGCharacter::TakeAnyDamage);
-
 	ImpaleMovementComponent = CreateDefaultSubobject<UImpaleMovementComponent>("ImpaleMovement");
+
+	if (IsValid(ImpaleMovementComponent) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("ATopDownARPGCharacter::ATopDownARPGCharacter() - IsValid(ImpaleMovementComponent) == false"));
+	}
+
 	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ATopDownARPGCharacter::OnImpaleMovementEnd);
 }
 
@@ -134,6 +138,18 @@ void ATopDownARPGCharacter::Death()
 
 void ATopDownARPGCharacter::OnImpaleMovementEnd()
 {
-	GetMovementComponent()->Activate(true);
-	FindComponentByClass<UCapsuleComponent>()->SetGenerateOverlapEvents(true);
+	UMovementComponent* MovementComponent = GetMovementComponent();
+
+	if (IsValid(MovementComponent) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("ATopDownAPRGCharacter::OnImpaleMovementEnd() - IsValid(MovementComponent) == false"));
+	}
+
+	MovementComponent->Activate(true);
+	UCapsuleComponent* CapsuleComponent = FindComponentByClass<UCapsuleComponent>();
+
+	if (IsValid(CapsuleComponent) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("ATopDownAPRGCharacter::OnImpaleMovementEnd() - IsValid(CapsuleComponent) == false"));
+	}
+
+	CapsuleComponent->SetGenerateOverlapEvents(true);
 }

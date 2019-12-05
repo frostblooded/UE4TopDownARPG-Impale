@@ -31,7 +31,13 @@ void UImpaleMovementComponent::Start(float NewMovementAmplitude)
 	bIsMoving = true;
 	bIsMovingForward = true;
 	MovementAmplitude = NewMovementAmplitude;
-	StartLocation = GetOwner()->GetActorLocation();
+	AActor* Owner = GetOwner();
+
+	if (IsValid(Owner) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("UImpaleMovementComponent::Start() - IsValid(Owner) == false"));
+	}
+
+	StartLocation = Owner->GetActorLocation();
 	GoalLocation = StartLocation;
 	GoalLocation.Z += MovementAmplitude;
 
@@ -46,19 +52,25 @@ void UImpaleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	if (!bIsMoving) return;
 
-	FVector Location = GetOwner()->GetActorLocation();
+	AActor* Owner = GetOwner();
+
+	if (IsValid(Owner) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("UImpaleMovementComponent::TickComponent() - IsValid(Owner) == false"));
+	}
+
+	FVector Location = Owner->GetActorLocation();
 	FVector CurrentMovement = Movement * Speed * DeltaTime;
 
 	if (bIsMovingForward)
 	{
 		if (CurrentMovement.Size() > FVector::Distance(Location, GoalLocation))
 		{
-			GetOwner()->SetActorLocation(GoalLocation);
+			Owner->SetActorLocation(GoalLocation);
 		}
 		else
 		{
 			FVector NewLocation = Location + Movement * Speed * DeltaTime;
-			GetOwner()->SetActorLocation(NewLocation);
+			Owner->SetActorLocation(NewLocation);
 		}
 
 		if (FVector::Distance(Location, GoalLocation) < 1)
@@ -73,11 +85,11 @@ void UImpaleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	{
 		if (CurrentMovement.Size() > FVector::Distance(Location, StartLocation))
 		{
-			GetOwner()->SetActorLocation(StartLocation);
+			Owner->SetActorLocation(StartLocation);
 		}
 		else
 		{
-			GetOwner()->SetActorLocation(Location + Movement * Speed * DeltaTime);
+			Owner->SetActorLocation(Location + Movement * Speed * DeltaTime);
 		}
 
 		if (FVector::Distance(Location, StartLocation) < 1)

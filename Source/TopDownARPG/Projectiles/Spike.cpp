@@ -28,6 +28,11 @@ ASpike::ASpike()
 	RootComponent = BoxComponent;
 
 	ImpaleMovementComponent = CreateDefaultSubobject<UImpaleMovementComponent>("ImpaleMovement");
+
+	if (IsValid(ImpaleMovementComponent) == false) {
+		UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::ASpike() - IsValid(ImpaleMovementComponent) == false"));
+	}
+
 	ImpaleMovementComponent->OnUpwardMovementEnd.AddUObject(this, &ASpike::TrySpawnNextSpike);
 	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ASpike::DestroySelf);
 }
@@ -40,18 +45,32 @@ void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrim
 
 	if (Other == GetOwner())
 	{
+		// Don't affact the actor if he is the owner of the ability
 		return;
 	}
 
-	APawn* OtherPawn = (APawn*)Other;
-	OtherPawn->GetMovementComponent()->Deactivate();
-	OtherPawn->FindComponentByClass<UCapsuleComponent>()->SetGenerateOverlapEvents(false);
+	APawn* OtherPawn = dynamic_cast<APawn*>(Other);
 
-	UImpaleMovementComponent* OtherImpaleMovementComponent = Other->FindComponentByClass<UImpaleMovementComponent>();
-
-	if (OtherImpaleMovementComponent != nullptr)
+	if (OtherPawn != nullptr)
 	{
-		OtherImpaleMovementComponent->Start(GetBoxHeight() * 2);
+		UMovementComponent* OtherMovementComponent = OtherPawn->GetMovementComponent();
+		UCapsuleComponent* OtherCapsuleComponent = OtherPawn->FindComponentByClass<UCapsuleComponent>();
+		UImpaleMovementComponent* OtherImpaleMovementComponent = Other->FindComponentByClass<UImpaleMovementComponent>();
+
+		if (IsValid(OtherMovementComponent) == false) {
+			UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::OnOverlap() - IsValid(OtherMovementComponent) == false"));
+		}
+
+		if (IsValid(OtherCapsuleComponent) == false) {
+			UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::OnOverlap() - IsValid(OtherCapsuleComponent) == false"));
+		}
+
+		if (OtherImpaleMovementComponent != nullptr)
+		{
+			OtherMovementComponent->Deactivate();
+			OtherCapsuleComponent->SetGenerateOverlapEvents(false);
+			OtherImpaleMovementComponent->Start(GetBoxHeight() * 2);
+		}
 	}
 }
 
@@ -143,6 +162,7 @@ void ASpike::SpawnNextSpike()
 
 float ASpike::GetBoxHeight()
 {
+	check(BoxComponent);
 	return BoxComponent->GetScaledBoxExtent().Z * 2;
 }
 
