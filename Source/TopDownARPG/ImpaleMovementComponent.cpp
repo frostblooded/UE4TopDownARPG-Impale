@@ -29,12 +29,11 @@ void UImpaleMovementComponent::BeginPlay()
 void UImpaleMovementComponent::Start(float NewMovementAmplitude)
 {
 	bIsMoving = true;
+	bIsMovingForward = true;
 	MovementAmplitude = NewMovementAmplitude;
 	StartLocation = GetOwner()->GetActorLocation();
 	GoalLocation = StartLocation;
 	GoalLocation.Z += MovementAmplitude;
-
-	UE_LOG(LogTopDownARPG, Display, TEXT("ImpaleMovementComponent::Start(%f) called. Start location %s and goal location %s."), NewMovementAmplitude, *StartLocation.ToString(), *GoalLocation.ToString());
 
 	Movement = GoalLocation - StartLocation;
 	Movement.Normalize();
@@ -83,7 +82,8 @@ void UImpaleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 		if (FVector::Distance(Location, StartLocation) < 1)
 		{
-			// GetOwner()->Destroy();
+			bIsMoving = false;
+			OnMovementEnd.Broadcast();
 		}
 	}
 }

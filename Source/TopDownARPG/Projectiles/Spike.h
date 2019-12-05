@@ -36,6 +36,9 @@ protected:
 	UFUNCTION()
 	void SpawnNextSpike();
 
+	UFUNCTION()
+	void DestroySelf();
+
 private:
 	FVector GetSpawnLocation();
 	float GetBoxHeight();

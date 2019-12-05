@@ -66,6 +66,7 @@ void ATopDownARPGCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
+	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ATopDownARPGCharacter::OnImpaleMovementEnd);
 
 	Health = MaximumHealth;
 
@@ -129,4 +130,10 @@ void ATopDownARPGCharacter::Death()
 	{
 		GameMode->EndGame(false);
 	}
+}
+
+void ATopDownARPGCharacter::OnImpaleMovementEnd()
+{
+	GetMovementComponent()->Activate(true);
+	FindComponentByClass<UCapsuleComponent>()->SetGenerateOverlapEvents(true);
 }

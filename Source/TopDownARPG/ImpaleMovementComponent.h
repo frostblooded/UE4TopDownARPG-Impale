@@ -21,6 +21,8 @@ public:
 	DECLARE_MULTICAST_DELEGATE(OnUpwardMovementEndSignature);
 	OnUpwardMovementEndSignature OnUpwardMovementEnd;
 
+	DECLARE_MULTICAST_DELEGATE(OnMovementEndSignature);
+	OnMovementEndSignature OnMovementEnd;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

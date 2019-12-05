@@ -4,7 +4,9 @@
 #include "Spike.h"
 #include "DrawDebugHelpers.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "TopDownARPGPlayerController.h"
 #include "Math/Vector.h"
 
@@ -28,13 +30,13 @@ ASpike::ASpike()
 
 void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTopDownARPG, Display, TEXT("Overlapped with %s"), *GetNameSafe(Other));
-
 	if (IsValid(Other) == false) {
 		UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::OnOverlap() - IsValid(Other) == false"));
 	}
 
-	ACharacter* OtherCharacter = (ACharacter*)Other;
+	APawn* OtherPawn = (APawn*)Other;
+	OtherPawn->GetMovementComponent()->Deactivate();
+	OtherPawn->FindComponentByClass<UCapsuleComponent>()->SetGenerateOverlapEvents(false);
 
 	UImpaleMovementComponent* OtherImpaleMovementComponent = Other->FindComponentByClass<UImpaleMovementComponent>();
 
@@ -53,6 +55,7 @@ void ASpike::BeginPlay()
 	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
 	ImpaleMovementComponent->Start(GetBoxHeight());
 	ImpaleMovementComponent->OnUpwardMovementEnd.AddUObject(this, &ASpike::TrySpawnNextSpike);
+	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ASpike::DestroySelf);
 }
 
 FVector ASpike::GetSpawnLocation() {
@@ -99,6 +102,11 @@ void ASpike::TrySpawnNextSpike()
 	{
 		SpawnNextSpike();
 	}
+}
+
+void ASpike::DestroySelf()
+{
+	Destroy();
 }
 
 void ASpike::SpawnNextSpike()

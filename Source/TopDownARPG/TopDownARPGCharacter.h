@@ -54,6 +54,9 @@ private:
 	UFUNCTION()
 	void TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigateBy, AActor* DamageCauser);
 
+	UFUNCTION()
+	void OnImpaleMovementEnd();
+
 	void Death();
 
 	UImpaleMovementComponent* ImpaleMovementComponent;
