@@ -26,6 +26,10 @@ ASpike::ASpike()
 	BoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	BoxComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ASpike::OnOverlap);
 	RootComponent = BoxComponent;
+
+	ImpaleMovementComponent = CreateDefaultSubobject<UImpaleMovementComponent>("ImpaleMovement");
+	ImpaleMovementComponent->OnUpwardMovementEnd.AddUObject(this, &ASpike::TrySpawnNextSpike);
+	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ASpike::DestroySelf);
 }
 
 void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -51,11 +55,7 @@ void ASpike::BeginPlay()
 	Super::BeginPlay();
 
 	SetActorLocation(GetSpawnLocation());
-
-	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
 	ImpaleMovementComponent->Start(GetBoxHeight());
-	ImpaleMovementComponent->OnUpwardMovementEnd.AddUObject(this, &ASpike::TrySpawnNextSpike);
-	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ASpike::DestroySelf);
 }
 
 FVector ASpike::GetSpawnLocation() {

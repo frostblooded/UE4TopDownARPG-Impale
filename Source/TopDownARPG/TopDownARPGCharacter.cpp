@@ -59,14 +59,14 @@ ATopDownARPGCharacter::ATopDownARPGCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	OnTakeAnyDamage.AddDynamic(this, &ATopDownARPGCharacter::TakeAnyDamage);
+
+	ImpaleMovementComponent = CreateDefaultSubobject<UImpaleMovementComponent>("ImpaleMovement");
+	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ATopDownARPGCharacter::OnImpaleMovementEnd);
 }
 
 void ATopDownARPGCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ImpaleMovementComponent = FindComponentByClass<UImpaleMovementComponent>();
-	ImpaleMovementComponent->OnMovementEnd.AddUObject(this, &ATopDownARPGCharacter::OnImpaleMovementEnd);
 
 	Health = MaximumHealth;
 
