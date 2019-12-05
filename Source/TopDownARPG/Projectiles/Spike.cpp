@@ -38,6 +38,11 @@ void ASpike::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrim
 		UE_LOG(LogTopDownARPG, Error, TEXT("ASpike::OnOverlap() - IsValid(Other) == false"));
 	}
 
+	if (Other == GetOwner())
+	{
+		return;
+	}
+
 	APawn* OtherPawn = (APawn*)Other;
 	OtherPawn->GetMovementComponent()->Deactivate();
 	OtherPawn->FindComponentByClass<UCapsuleComponent>()->SetGenerateOverlapEvents(false);
